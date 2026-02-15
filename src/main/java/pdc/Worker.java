@@ -31,15 +31,18 @@ public class Worker {
             sendMessage(regMsg);
             
             System.out.println("Worker " + id + " joined cluster at " + masterHost + ":" + port);
-            
-            listenForTasks();
         } catch (IOException e) {
             System.err.println("Worker failed to join cluster: " + e.getMessage());
         }
     }
 
+    public void execute() {
+        System.out.println("Worker " + id + " starting execution loop...");
+        executor.submit(this::listenForTasks);
+    }
+
     private void listenForTasks() {
-        while (!socket.isClosed()) {
+        while (socket != null && !socket.isClosed()) {
             try {
                 Message msg = receiveMessage();
                 if (msg == null) break;
@@ -51,7 +54,7 @@ public class Worker {
                     sendMessage(pong);
                 }
             } catch (IOException e) {
-                System.err.println("Worker lost connection to master: " + e.getMessage());
+                System.err.println("Worker lost connection or error: " + e.getMessage());
                 break;
             }
         }
