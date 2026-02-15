@@ -283,4 +283,3 @@ public class Master {
         System.out.println("Master is ready. Connect workers to begin.");
     }
 }
-}
