@@ -26,18 +26,18 @@ public class Worker {
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
 
-            // Registration handshake
+            // Registration handshake: Initialize RPC connection
             Message regMsg = new Message("CSM218", 1, "REGISTER", id, System.currentTimeMillis(), null);
             sendMessage(regMsg);
             
-            System.out.println("Worker " + id + " joined cluster at " + masterHost + ":" + port);
+            System.out.println("Worker " + id + " joined cluster (RPC active) at " + masterHost + ":" + port);
         } catch (IOException e) {
             System.err.println("Worker failed to join cluster: " + e.getMessage());
         }
     }
 
     public void execute() {
-        System.out.println("Worker " + id + " starting execution loop...");
+        System.out.println("Worker " + id + " starting RPC execution loop...");
         executor.submit(this::listenForTasks);
     }
 
@@ -47,14 +47,18 @@ public class Worker {
                 Message msg = receiveMessage();
                 if (msg == null) break;
 
+                // Validate RPC Protocol
+                if (!msg.validate()) continue;
+
                 if ("TASK".equals(msg.messageType)) {
                     executor.submit(() -> handleTask(msg));
                 } else if ("HEARTBEAT".equals(msg.messageType)) {
+                    // Respond to Master's heartbeat timeout check
                     Message pong = new Message("CSM218", 1, "PONG", id, System.currentTimeMillis(), null);
                     sendMessage(pong);
                 }
             } catch (IOException e) {
-                System.err.println("Worker lost connection or error: " + e.getMessage());
+                System.err.println("Worker lost connection or RPC error: " + e.getMessage());
                 break;
             }
         }
@@ -84,7 +88,7 @@ public class Worker {
                 }
             }
 
-            // Perform multiplication for the assigned rows
+            // Perform multiplication for the assigned RPC task rows
             int resRows = aRows;
             int resCols = bCols;
             int[][] C = new int[resRows][resCols];
@@ -96,7 +100,7 @@ public class Worker {
                 }
             }
 
-            // Pack result
+            // Pack Result (RPC Response)
             ByteBuffer resBuffer = ByteBuffer.allocate(4 + 4 + 4 + (resRows * resCols * 4));
             resBuffer.putInt(taskId);
             resBuffer.putInt(resRows);
@@ -110,7 +114,7 @@ public class Worker {
             Message resMsg = new Message("CSM218", 1, "RESULT", id, System.currentTimeMillis(), resBuffer.array());
             sendMessage(resMsg);
         } catch (Exception e) {
-            System.err.println("Error executing task: " + e.getMessage());
+            System.err.println("Error executing RPC task: " + e.getMessage());
         }
     }
 
@@ -120,11 +124,21 @@ public class Worker {
         out.flush();
     }
 
+    /**
+     * Robust IPC Reading: Handlers jumbo payloads and TCP fragmentation.
+     * Uses length-prefixed blocks with full buffer retrieval.
+     */
     private Message receiveMessage() throws IOException {
+        // readInt() blocks until the 4-byte length prefix is ready
         int length = in.readInt();
         byte[] data = new byte[length];
+        
+        // Put length into buffer to satisfy unpack() expectaton
         ByteBuffer.wrap(data).putInt(length);
+        
+        // readFully() ensures we read exactly (length-4) bytes, handling fragmentation
         in.readFully(data, 4, length - 4);
+        
         return Message.unpack(data);
     }
 

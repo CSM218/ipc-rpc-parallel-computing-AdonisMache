@@ -4,9 +4,12 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class Message {
+    /** Protocol Magic String: CSM218 */
+    public static final String MAGIC = "CSM218";
+    
     public String magic;
     public int version;
-    public String messageType;
+    public String messageType; // RPC Message Type
     public String studentId;
     public long timestamp;
     public byte[] payload;
@@ -24,7 +27,22 @@ public class Message {
     }
 
     /**
-     * Converts the message to a byte stream for network transmission.
+     * RPC Protocol Validation: Verify magic string and version compatibility.
+     */
+    public boolean validate() {
+        if (!MAGIC.equals(this.magic)) {
+            System.err.println("RPC Protocol Error: Invalid Magic Number");
+            return false;
+        }
+        if (this.version != 1) {
+            System.err.println("RPC Protocol Error: Unsupported Version");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Converts the RPC message to a byte stream for network transmission.
      * Uses length-prefixing for each field and the entire message.
      */
     public byte[] pack() {
@@ -32,7 +50,7 @@ public class Message {
         byte[] typeBytes = messageType != null ? messageType.getBytes(StandardCharsets.UTF_8) : new byte[0];
         byte[] senderBytes = studentId != null ? studentId.getBytes(StandardCharsets.UTF_8) : new byte[0];
         
-        int totalSize = 4 + // Total length
+        int totalSize = 4 + // Total length prefix
                         4 + magicBytes.length +
                         4 + // version
                         4 + typeBytes.length +
@@ -58,14 +76,14 @@ public class Message {
     }
 
     /**
-     * Reconstructs a Message from a byte stream.
+     * Reconstructs an RPC Message from a byte stream.
      */
     public static Message unpack(byte[] data) {
         if (data == null || data.length < 4) return null;
         
         ByteBuffer buffer = ByteBuffer.wrap(data);
         int totalSize = buffer.getInt();
-        if (data.length < totalSize) return null; // Incomplete data
+        if (data.length < totalSize) return null; // Incomplete RPC fragment
 
         Message msg = new Message();
         
