@@ -74,11 +74,7 @@ public class Master {
         }
 
         void send(Message msg) throws IOException {
-            byte[] data = msg.pack();
-            synchronized (out) {
-                out.write(data);
-                out.flush();
-            }
+            NetworkUtils.writeMessage(out, msg);
         }
     }
 
@@ -216,17 +212,18 @@ public class Master {
         systemThreads.submit(() -> {
             try {
                 DataInputStream in = new DataInputStream(socket.getInputStream());
-                int length = in.readInt();
-                byte[] data = new byte[length];
-                ByteBuffer.wrap(data).putInt(length);
-                in.readFully(data, 4, length - 4);
-                Message reg = Message.unpack(data);
+                // Use NetworkUtils for robust registration handshake
+                Message reg = NetworkUtils.readMessage(in);
 
                 if (reg != null && reg.validate() && "REGISTER".equals(reg.messageType)) {
                     WorkerProxy wp = new WorkerProxy(reg.studentId, socket);
+                    // Crucial: Use the same stream that already read the first message
+                    wp.in = in; 
                     workers.put(wp.id, wp);
                     System.out.println("Worker registered: " + wp.id);
                     listenToWorker(wp);
+                } else {
+                    socket.close();
                 }
             } catch (IOException e) {
                 try { socket.close(); } catch (IOException ignored) {}
@@ -238,11 +235,8 @@ public class Master {
         systemThreads.submit(() -> {
             try {
                 while (!worker.socket.isClosed()) {
-                    int length = worker.in.readInt();
-                    byte[] data = new byte[length];
-                    ByteBuffer.wrap(data).putInt(length);
-                    worker.in.readFully(data, 4, length - 4);
-                    Message msg = Message.unpack(data);
+                    // Use NetworkUtils for robust IPC reading and fragmentation support
+                    Message msg = NetworkUtils.readMessage(worker.in);
 
                     if (msg == null || !msg.validate()) continue;
 
@@ -255,7 +249,9 @@ public class Master {
                     }
                 }
             } catch (IOException e) {
-                System.err.println("Worker disconnected: " + worker.id);
+                if (!worker.socket.isClosed()) {
+                    System.err.println("Worker disconnected: " + worker.id);
+                }
                 if (worker.currentTask != null) {
                     reassignOrphanedTask(worker.currentTask);
                     worker.currentTask = null;

@@ -119,9 +119,7 @@ public class Worker {
     }
 
     private synchronized void sendMessage(Message msg) throws IOException {
-        byte[] data = msg.pack();
-        out.write(data);
-        out.flush();
+        NetworkUtils.writeMessage(out, msg);
     }
 
     /**
@@ -129,17 +127,7 @@ public class Worker {
      * Uses length-prefixed blocks with full buffer retrieval.
      */
     private Message receiveMessage() throws IOException {
-        // readInt() blocks until the 4-byte length prefix is ready
-        int length = in.readInt();
-        byte[] data = new byte[length];
-        
-        // Put length into buffer to satisfy unpack() expectaton
-        ByteBuffer.wrap(data).putInt(length);
-        
-        // readFully() ensures we read exactly (length-4) bytes, handling fragmentation
-        in.readFully(data, 4, length - 4);
-        
-        return Message.unpack(data);
+        return NetworkUtils.readMessage(in);
     }
 
     public static void main(String[] args) {
