@@ -1,0 +1,57 @@
+﻿=== CSM218 Autograder   ===
+
+[OK] Compilation successful
+
+--- RPC ---
+[PASS] compilation: Compilation verified
+[CLASSROOM_TAG] COMPILATION PASSED
+[PASS] socket_ipc: Socket communication implemented
+[CLASSROOM_TAG] SOCKET_IPC PASSED
+[PASS] rpc_abstraction: RPC abstraction found
+[CLASSROOM_TAG] RPC_ABSTRACTION PASSED
+[PASS] protocol_schema: Protocol schema validated
+[CLASSROOM_TAG] PROTOCOL_SCHEMA PASSED
+
+--- Parallel ---
+[PASS] parallel_matrix_multiply: Parallel execution patterns detected
+[CLASSROOM_TAG] PARALLEL_MATRIX_MULTIPLY PASSED
+[PASS] concurrency_support: Concurrent execution support found
+[CLASSROOM_TAG] CONCURRENCY_SUPPORT PASSED
+
+--- Failure ---
+[PASS] worker_failure_detection: Heartbeat and timeout logic detected
+[CLASSROOM_TAG] WORKER_FAILURE_DETECTION PASSED
+[PASS] recovery_mechanism: Recovery mechanism found
+[CLASSROOM_TAG] RECOVERY_MECHANISM PASSED
+
+--- Protocol ---
+[PASS] message_format: Message format compliant
+[CLASSROOM_TAG] MESSAGE_FORMAT PASSED
+[PASS] serialization: Serialization logic found
+[CLASSROOM_TAG] SERIALIZATION PASSED
+[PASS] protocol_validation: Protocol validation found
+[CLASSROOM_TAG] PROTOCOL_VALIDATION PASSED
+[PASS] no_external_frameworks: No external frameworks
+[CLASSROOM_TAG] NO_EXTERNAL_FRAMEWORKS PASSED
+[PASS] environment_variables: Environment variables used
+[CLASSROOM_TAG] ENVIRONMENT_VARIABLES PASSED
+
+--- Concurrency ---
+[PASS] thread_support: Thread support found
+[CLASSROOM_TAG] THREAD_SUPPORT PASSED
+[PASS] concurrent_collections: Concurrent collections used
+[CLASSROOM_TAG] CONCURRENT_COLLECTIONS PASSED
+[PASS] connection_handling: Multiple connection handling found
+[CLASSROOM_TAG] CONNECTION_HANDLING PASSED
+[PASS] atomic_operations: Atomic/synchronized access found
+[CLASSROOM_TAG] ATOMIC_OPERATIONS PASSED
+[PASS] request_queuing: Request queuing mechanism found
+[CLASSROOM_TAG] REQUEST_QUEUING PASSED
+
+--- Advanced ---
+[PASS] advanced_handshake: Handshake patterns found
+[CLASSROOM_TAG] ADVANCED_HANDSHAKE PASSED
+Results written to C:\Users\DELL\OneDrive\Desktop\PART 4.2.1\SCS 4212 Parallel and Distributed Computing\Prac Assignment\ipc-rpc-parallel-computing-AdonisMache\autograder\results\results.json
+
+Status: PASS
+=== Score for this section: 100.00% ===
